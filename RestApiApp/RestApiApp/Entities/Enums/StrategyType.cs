@@ -35,10 +35,7 @@
         AUCTION_ORDER = 41,
         CROSS_VWAP = 42,
         CONDITIONAL_ORDER = 43,
-        FINDER = 44,
-        BARCELONA = 45,
         CROSS_SPREAD = 46,
-        CROSS_FX = 47,
         MARKET_ORDER = 48
     }
 }
