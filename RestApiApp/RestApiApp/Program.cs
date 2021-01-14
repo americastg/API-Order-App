@@ -15,6 +15,7 @@ namespace RestApiApp
         async static Task Main(string[] args)
         {
             await RunAsync();
+            Console.WriteLine("Aperte qualquer tecla para continuar");
             Console.ReadLine();
         }
 
@@ -22,7 +23,7 @@ namespace RestApiApp
         {
             try
             {
-                await GetToken();
+                await InitAuthToken();
                 await Task.Delay(1000);
 
                 string strategyId = await NewSimpleOrder();
@@ -45,12 +46,17 @@ namespace RestApiApp
             }
         }
 
-        // Irá pegar o token necessário para envio de ordens pela API
-        static async Task GetToken()
+        static void InitHttpClient()
         {
             _httpClient.BaseAddress = new Uri(Config.BaseAddress);
             _httpClient.DefaultRequestHeaders.Accept.Add(
                     new MediaTypeWithQualityHeaderValue("application/json"));
+        }
+
+        // Irá pegar o token necessário para envio de ordens pela API
+        static async Task InitAuthToken()
+        {
+            InitHttpClient();
 
             var response = await _httpClient.RequestPasswordTokenAsync(new PasswordTokenRequest
             {
