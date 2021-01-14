@@ -1,0 +1,10 @@
+﻿namespace RestApiApp
+{
+    // Tipos de status para serem recebidos
+    public enum Status
+    {
+        PENDING_CREATE, CREATED, RUNNING, STOPPED, CANCELLED, WAITING_TIME, REJECT, WAITING_STOP,
+        CANCELLING, FINISHED, REJECTED, TOTALLY_EXECUTED, WAITING_ACK, PENDING_CANCEL, PENDING_REPLACE,
+        OPEN, SUSPENDED, PARTIALLY_EXECUTED
+    }
+}
