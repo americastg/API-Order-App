@@ -20,20 +20,29 @@ namespace RestApiApp
 
         static async Task RunAsync()
         {
-            await GetToken();
-            await Task.Delay(1000);
+            try
+            {
+                await GetToken();
+                await Task.Delay(1000);
 
-            string strategyId = await NewSimpleOrder();
-            await Task.Delay(1000);
+                string strategyId = await NewSimpleOrder();
+                await Task.Delay(1000);
 
-            await UpdateSimpleOrder(strategyId);
-            await Task.Delay(1000);
+                string status = await GetSimpleOrderStatus(strategyId);
 
-            await CancelSimpleOrder(strategyId);
-            await Task.Delay(1000);
+                await UpdateSimpleOrder(strategyId, status);
+                await Task.Delay(1000);
 
-            await GetSimpleOrder();
-            await Task.Delay(1000);
+                await CancelSimpleOrder(strategyId, status);
+                await Task.Delay(1000);
+
+                await GetSimpleOrder();
+                await Task.Delay(1000);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
         // Irá pegar o token necessário para envio de ordens pela API
@@ -62,14 +71,33 @@ namespace RestApiApp
             Console.WriteLine();
         }
 
-        // Método para receber informações de todos os envios de ordem simples
-        static async Task GetSimpleOrder()
+        // Método para pegar o status, através do strategyId da ordem
+        static async Task<string> GetSimpleOrderStatus(string strategyId)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync("simple-order");
+            var response = await _httpClient.GetAsync("simple-order");
 
             // Garante que a resposta não contém nenhum erro
             response.EnsureSuccessStatusCode();
-            Console.WriteLine("Consulta de ordem simples com status: " + response.StatusCode);
+            Console.WriteLine("Consulta de ordem simples: " + response.StatusCode);
+
+            var listContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var deserializedResponse = JsonConvert.DeserializeObject<List<StrategyResponseSamples>>(listContent);
+            var strategySent = deserializedResponse.Find(x => x.StrategyId == strategyId);
+            var status = strategySent.Status.ToString();
+            Console.WriteLine("Status da ordem: " + status);
+            Console.WriteLine();
+
+            return status;
+        }
+
+        // Método para receber informações de todos os envios de ordem simples
+        static async Task GetSimpleOrder()
+        {
+            var response = await _httpClient.GetAsync("simple-order");
+
+            // Garante que a resposta não contém nenhum erro
+            response.EnsureSuccessStatusCode();
+            Console.WriteLine("Consulta de ordem simples: " + response.StatusCode);
 
             var listContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var deserializedResponse = JsonConvert.DeserializeObject<List<StrategyResponseSamples>>(listContent);
@@ -85,13 +113,13 @@ namespace RestApiApp
         // Metodo para criar uma ordem simples a partir dos parâmetros colocados no método anterior
         static async Task<string> NewSimpleOrder()
         {
-            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("simple-order",
+            var response = await _httpClient.PostAsJsonAsync("simple-order",
                 new SimpleOrder
                 {
                     Broker = Config.Broker,
                     Account = Config.Account,
                     OrderType = OrderType.LIMIT,
-                    Symbol = "SULA4",
+                    Symbol = "SULA4", // papel 'exótico' para garantir que a ordem não irá executar antes do update
                     Side = Side.SELL,
                     Quantity = 300,
                     Price = 19.00,
@@ -101,31 +129,68 @@ namespace RestApiApp
 
             // Garante que a resposta não contém nenhum erro
             response.EnsureSuccessStatusCode();
-            Console.WriteLine("Inclusão de ordem simples com status: " + response.StatusCode);
+            Console.WriteLine("Inclusão de ordem simples: " + response.StatusCode);
 
             var contentResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var orderResponse = JsonConvert.DeserializeObject<TradingResponses>(contentResponse);
-            Console.WriteLine("Response messageID: " + orderResponse.MessageId);
-            Console.WriteLine("Response strategyID: " + orderResponse.StrategyId);
-            Console.WriteLine("Response success: " + orderResponse.Success);
-            Console.WriteLine("Response error: " + orderResponse.Error);
-            Console.WriteLine();
+            LogStrategyResponse(orderResponse, orderResponse.StrategyId);
+            CheckOrderResponseError(orderResponse.Error);
 
             return orderResponse.StrategyId;
         }
 
         // Método usado pra fazer update de ordem simples
-        static async Task UpdateSimpleOrder(string strategyId)
+        static async Task UpdateSimpleOrder(string strategyId, string status)
         {
-            HttpResponseMessage response = await _httpClient.PutAsJsonAsync($"simple-order/{strategyId}",
+            if (SimpleOrderCanBeUpdated(status))
+            {
+                var response = await _httpClient.PutAsJsonAsync($"simple-order/{strategyId}",
                 new SimpleOrder { Quantity = 50000 });
 
-            // Garante que a resposta não contém nenhum erro
-            response.EnsureSuccessStatusCode();
-            Console.WriteLine("Update de ordem simples com status: " + response.StatusCode);
+                // Garante que a resposta não contém nenhum erro
+                response.EnsureSuccessStatusCode();
+                Console.WriteLine("Update de ordem simples: " + response.StatusCode);
 
-            var contentResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var orderResponse = JsonConvert.DeserializeObject<TradingResponses>(contentResponse);
+                var contentResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var orderResponse = JsonConvert.DeserializeObject<TradingResponses>(contentResponse);
+                LogStrategyResponse(orderResponse, strategyId);
+                CheckOrderResponseError(orderResponse.Error);
+            }
+            else
+            {
+                Console.WriteLine("Não foi possível realizar um update da ordem simples," +
+                    " já que o status atual da estratégia é: " + status);
+                Console.WriteLine();
+            }
+        }
+
+        // Método usado para fazer cancelamento de ordem simples
+        static async Task CancelSimpleOrder(string strategyId, string status)
+        {
+            if (SimpleOrderCanBeUpdated(status))
+            {
+                var response = await _httpClient.DeleteAsync($"simple-order/{strategyId}");
+
+                // Garante que a resposta não contém nenhum erro
+                response.EnsureSuccessStatusCode();
+                Console.WriteLine("Cancelamento de ordem simples: " + response.StatusCode);
+
+                var contentResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var orderResponse = JsonConvert.DeserializeObject<TradingResponses>(contentResponse);
+                LogStrategyResponse(orderResponse, strategyId);
+                CheckOrderResponseError(orderResponse.Error);
+            }
+            else
+            {
+                Console.WriteLine("Não foi possível realizar um cancelamento da ordem simples," +
+                    " já que o status atual da estratégia é: " + status);
+                Console.WriteLine();
+            }
+        }
+
+        // Método usado para logar a resposta da API após qualquer request enviado
+        static void LogStrategyResponse(TradingResponses orderResponse, string strategyId)
+        {
             Console.WriteLine("Response messageID: " + orderResponse.MessageId);
             Console.WriteLine("Response strategyID: " + strategyId);
             Console.WriteLine("Response success: " + orderResponse.Success);
@@ -133,22 +198,25 @@ namespace RestApiApp
             Console.WriteLine();
         }
 
-        // Método usado para fazer cancelamento de ordem simples
-        static async Task CancelSimpleOrder(string strategyId)
+        static void CheckOrderResponseError(string error)
         {
-            HttpResponseMessage response = await _httpClient.DeleteAsync($"simple-order/{strategyId}");
+            if (!string.IsNullOrEmpty(error))
+            {
+                Console.WriteLine("Erro no retorno da API:");
+                throw new Exception(error);
+            }
+        }
 
-            // Garante que a resposta não contém nenhum erro
-            response.EnsureSuccessStatusCode();
-            Console.WriteLine("Cancelamento de ordem simples com status: " + response.StatusCode);
+        // Método que verifica se a estratégia pode ser modificada, através do status
+        static bool SimpleOrderCanBeUpdated(string status)
+        {
+            Status statusEnum = (Status)Enum.Parse(typeof(Status), status);
+            if (statusEnum == Status.CANCELLED ||
+                statusEnum == Status.FINISHED ||
+                statusEnum == Status.TOTALLY_EXECUTED)
+                return false;
 
-            var contentResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var orderResponse = JsonConvert.DeserializeObject<TradingResponses>(contentResponse);
-            Console.WriteLine("Response messageID: " + orderResponse.MessageId);
-            Console.WriteLine("Response strategyID: " + strategyId);
-            Console.WriteLine("Response success: " + orderResponse.Success);
-            Console.WriteLine("Response error: " + orderResponse.Error);
-            Console.WriteLine();
+            return true;
         }
     }
 }
