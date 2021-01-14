@@ -14,8 +14,10 @@ namespace RestApiApp
 
         async static Task Main(string[] args)
         {
+            InitHttpClient();
             await RunAsync();
-            Console.WriteLine("Aperte qualquer tecla para continuar");
+
+            Console.WriteLine("Aperte qualquer tecla para encerrar");
             Console.ReadLine();
         }
 
@@ -56,8 +58,6 @@ namespace RestApiApp
         // Irá pegar o token necessário para envio de ordens pela API
         static async Task InitAuthToken()
         {
-            InitHttpClient();
-
             var response = await _httpClient.RequestPasswordTokenAsync(new PasswordTokenRequest
             {
                 Address = Config.TokenAddress,
