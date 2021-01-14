@@ -198,6 +198,7 @@ namespace RestApiApp
             Console.WriteLine();
         }
 
+        // Método se há algum erro no retorno do envio da ordem
         static void CheckOrderResponseError(string error)
         {
             if (!string.IsNullOrEmpty(error))
