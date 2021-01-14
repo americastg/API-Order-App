@@ -159,7 +159,7 @@ namespace RestApiApp
             else
             {
                 Console.WriteLine("Não foi possível realizar um update da ordem simples," +
-                    " já que o status atual da estratégia é: " + status);
+                    " já que o status atual da ordem é: " + status);
                 Console.WriteLine();
             }
         }
@@ -183,7 +183,7 @@ namespace RestApiApp
             else
             {
                 Console.WriteLine("Não foi possível realizar um cancelamento da ordem simples," +
-                    " já que o status atual da estratégia é: " + status);
+                    " já que o status atual da ordem é: " + status);
                 Console.WriteLine();
             }
         }
