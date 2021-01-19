@@ -1,16 +1,15 @@
 ﻿namespace Entities.Enums
 {
-    // Tipos de lado
-    public enum Side
+    public enum SlippageMode
     {
         /// <summary>
-        /// Compra
+        /// Manter ordens
         /// </summary>
-        BUY,
+        KEEP_ORDERS,
 
         /// <summary>
-        /// Venda
+        /// Ignorar execuções
         /// </summary>
-        SELL
+        IGNORE_EXECUTIONS
     }
 }

@@ -1,16 +1,15 @@
 ﻿namespace Entities.Enums
 {
-    // Tipos de lado
-    public enum Side
+    public enum QuantityType
     {
         /// <summary>
-        /// Compra
+        /// Tipo Quantidade
         /// </summary>
-        BUY,
+        QUANTITY,
 
         /// <summary>
-        /// Venda
+        /// Tipo Financeiro
         /// </summary>
-        SELL
+        FINANCIAL
     }
 }

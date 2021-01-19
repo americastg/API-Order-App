@@ -1,4 +1,4 @@
-﻿namespace RestApiApp
+﻿namespace Entities.Enums
 {
     // Tipos de estratégia para serem recebidos
     public enum StrategyType
