@@ -1,5 +1,6 @@
 ﻿using Entities;
 using Entities.Enums;
+using Entities.Spread;
 using IdentityModel.Client;
 using Newtonsoft.Json;
 using RestApiApp;
@@ -68,7 +69,7 @@ namespace Strategies.Spread
             var token = response.AccessToken.ToString();
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            Console.WriteLine("Token de acesso conseguido");
+            Console.WriteLine("Token de acesso obtido");
             Console.WriteLine();
         }
 

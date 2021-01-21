@@ -1,7 +1,7 @@
 ﻿using Entities.Enums;
 using System;
 
-namespace Entities.Simple_Order
+namespace Entities.SimpleOrder
 {
     // Classe com todos os parâmetros para criação de ordem simples
     public class SimpleOrderRequest

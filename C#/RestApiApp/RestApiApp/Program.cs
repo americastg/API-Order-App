@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Strategies.Simple_Order;
+using Strategies.SimpleOrder;
 using Strategies.Spread;
 
 namespace RestApiApp

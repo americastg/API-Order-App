@@ -1,7 +1,7 @@
 ﻿using Entities.Enums;
 using System;
 
-namespace Entities.Simple_Order
+namespace Entities.SimpleOrder
 {
     public class SimpleOrderReturnedFields : SimpleOrderRequest
     {

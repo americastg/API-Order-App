@@ -1,5 +1,6 @@
 ﻿using Entities;
 using Entities.Enums;
+using Entities.SimpleOrder;
 using IdentityModel.Client;
 using Newtonsoft.Json;
 using RestApiApp;
@@ -9,7 +10,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace Strategies.Simple_Order
+namespace Strategies.SimpleOrder
 {
     static class SimpleOrderExample
     {
@@ -68,7 +69,7 @@ namespace Strategies.Simple_Order
             var token = response.AccessToken.ToString();
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            Console.WriteLine("Token de acesso conseguido");
+            Console.WriteLine("Token de acesso obtido");
             Console.WriteLine();
         }
 
