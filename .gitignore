@@ -479,4 +479,4 @@ dist
 .pnp.*
 
 # vscode
-.vscode
+.vscode/settings.json
