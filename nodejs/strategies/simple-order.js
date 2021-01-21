@@ -59,19 +59,16 @@ async function getLastSimpleOrderStatusById(headers, strategyId) {
         .catch(error => console.log('Erro na consulta das ordens simples para verificar o status. Erro: ' + error))
 
     for (let resp of response.data) {
-        if (resp['StrategyId'] == strategyId) {
-            return resp['Status']
+        if (resp.StrategyId == strategyId) {
+            return resp.Status
         }
     }
 }
 
-async function isUpdatable(status) {
-    if (status == 'CANCELLED' ||
-        status == 'TOTALLY_EXECUTED' ||
-        status == 'FINISHED')
-        return false
-
-    return true
+function isUpdatable(status) {
+    return status == 'CANCELLED'
+        || status == 'TOTALLY_EXECUTED'
+        || status == 'FINISHED'
 }
 
 async function run() {
@@ -93,7 +90,7 @@ async function run() {
         'Price': 20.04
     }
     const simpleOrderCrationResponse = await createSimpleOrder(headers, newRequest)
-    const strategyId = simpleOrderCrationResponse.data['StrategyId']
+    const strategyId = simpleOrderCrationResponse.data.StrategyId
 
     const status = await getLastSimpleOrderStatusById(headers, strategyId)
 

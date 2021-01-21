@@ -59,19 +59,16 @@ async function getLastSpreadStatusById(headers, strategyId) {
         .catch(error => console.log('Erro na consulta dos spreads para verificar o status. Erro: ' + error))
 
     for (let resp of response.data) {
-        if (resp['StrategyId'] == strategyId) {
-            return resp['Status']
+        if (resp.StrategyId == strategyId) {
+            return resp.Status
         }
     }
 }
 
-async function isUpdatable(status) {
-    if (status == 'CANCELLED' ||
-        status == 'TOTALLY_EXECUTED' ||
-        status == 'FINISHED')
-        return false
-
-    return true
+function isUpdatable(status) {
+    return status == 'CANCELLED'
+        || status == 'TOTALLY_EXECUTED'
+        || status == 'FINISHED'
 }
 
 async function run() {
@@ -117,7 +114,7 @@ async function run() {
         }]
     }
     const spreadCreationResponse = await createSpread(headers, newRequest)
-    const strategyId = spreadCreationResponse.data['StrategyId']
+    const strategyId = spreadCreationResponse.data.StrategyId
 
     const status = await getLastSpreadStatusById(headers, strategyId)
 
