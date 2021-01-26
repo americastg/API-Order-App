@@ -6,6 +6,8 @@ password = 'sua_senha'
 client_id = 'seu_client_id'
 client_secret = 'seu_client_secret'
 token_url = 'https://mtbserver-staging.americastg.com.br:51525/connect/token'
+BROKER = 'sua_corretora' # Ex: '321'
+ACCOUNT = 'sua_conta' # Ex: '123'
 
 # payload para obter o token
 token_request = {
@@ -31,8 +33,8 @@ headers = {
 }
 
 new_request = {
-    'Broker': '935',
-    'Account': '1001',
+    'Broker': BROKER,
+    'Account': ACCOUNT,
     'OrderType': 'LIMIT',
     'Symbol': 'BBSE3',
     'Side': 'BUY',
@@ -56,7 +58,7 @@ def main():
 
     strategy_id = response.json()['StrategyId']
 
-    if (client.is_updatable()):
+    if (client.is_order_updatable(strategy_id)):
         print('PUT REQUEST:')
         response = client.update(update_request, strategy_id)
         print(response.text)

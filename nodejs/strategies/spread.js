@@ -54,7 +54,7 @@ async function getAllSpreads(headers) {
     })
 }
 
-async function getLastSpreadStatusById(headers, strategyId) {
+async function getSpreadStatusById(headers, strategyId) {
     const response = await axios.get(BASE_ADDRESS, { headers })
         .catch(error => console.log('Erro na consulta dos spreads para verificar o status. Erro: ' + error))
 
@@ -116,7 +116,7 @@ async function run() {
     const spreadCreationResponse = await createSpread(headers, newRequest)
     const strategyId = spreadCreationResponse.data.StrategyId
 
-    const status = await getLastSpreadStatusById(headers, strategyId)
+    const status = await getSpreadStatusById(headers, strategyId)
 
     const updateRequest = {
         "SpreadValue": -6.3325,

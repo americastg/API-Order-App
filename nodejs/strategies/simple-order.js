@@ -54,7 +54,7 @@ async function getAllSimpleOrders(headers) {
     })
 }
 
-async function getLastSimpleOrderStatusById(headers, strategyId) {
+async function getSimpleOrderStatusById(headers, strategyId) {
     const response = await axios.get(BASE_ADDRESS, { headers })
         .catch(error => console.log('Erro na consulta das ordens simples para verificar o status. Erro: ' + error))
 
@@ -92,7 +92,7 @@ async function run() {
     const simpleOrderCrationResponse = await createSimpleOrder(headers, newRequest)
     const strategyId = simpleOrderCrationResponse.data.StrategyId
 
-    const status = await getLastSimpleOrderStatusById(headers, strategyId)
+    const status = await getSimpleOrderStatusById(headers, strategyId)
 
     const updateRequest = {
         'Quantity': 20000

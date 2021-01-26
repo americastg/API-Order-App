@@ -13,11 +13,13 @@ class SpreadClient:
         response.raise_for_status()
         return response
 
-    def is_updatable(self):
+    def is_strategy_updatable(self, strategy_id):
         response = self.get()
-        last_response_in_array = response.json()[-1]
-        status = last_response_in_array['Status']
-        return status != 'CANCELLED' and status != 'FINISHED' and status != 'TOTALLY_EXECUTED'
+        all_responses = response.json()
+        for response in all_responses:
+            if response['StrategyId'] == strategy_id:
+                status = response['Status']
+                return status != 'CANCELLED' and status != 'FINISHED' and status != 'TOTALLY_EXECUTED'
 
     def new(self, new_request):
         response = requests.post(URL, data=json.dumps(
