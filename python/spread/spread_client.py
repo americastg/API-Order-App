@@ -13,6 +13,12 @@ class SpreadClient:
         response.raise_for_status()
         return response
 
+    def is_updatable(self):
+        response = self.get()
+        last_response_in_array = response.json()[-1]
+        status = last_response_in_array['Status']
+        return status != 'CANCELLED' and status != 'FINISHED' and status != 'TOTALLY_EXECUTED'
+
     def new(self, new_request):
         response = requests.post(URL, data=json.dumps(
             new_request), headers=self.headers)

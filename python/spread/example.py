@@ -91,15 +91,16 @@ def main():
 
     strategy_id = response.json()['StrategyId']
 
-    print('PUT REQUEST:')
-    response = client.update(update_request, strategy_id)
-    print(response.text)
-    print()
+    if (client.is_updatable()):
+        print('PUT REQUEST:')
+        response = client.update(update_request, strategy_id)
+        print(response.text)
+        print()
 
-    print('DELETE REQUEST:')
-    response = client.cancel(strategy_id)
-    print(response.text)
-    print()
+        print('DELETE REQUEST:')
+        response = client.cancel(strategy_id)
+        print(response.text)
+        print()
 
     print('GET REQUEST:')
     response = client.get()

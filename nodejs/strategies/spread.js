@@ -66,9 +66,9 @@ async function getLastSpreadStatusById(headers, strategyId) {
 }
 
 function isUpdatable(status) {
-    return status == 'CANCELLED'
-        || status == 'TOTALLY_EXECUTED'
-        || status == 'FINISHED'
+    return status != 'CANCELLED'
+        && status != 'TOTALLY_EXECUTED'
+        && status != 'FINISHED'
 }
 
 async function run() {
