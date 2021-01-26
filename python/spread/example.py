@@ -1,26 +1,22 @@
 import requests
 import spread_client
 
-username = 'seu_usuario'
-password = 'sua_senha'
-client_id = 'seu_client_id'
-client_secret = 'seu_client_secret'
-token_url = 'https://mtbserver-staging.americastg.com.br:51525/connect/token'
+TOKEN_URL = 'https://mtbserver-staging.americastg.com.br:51525/connect/token'
 BROKER = 'sua_corretora' # Ex: '321'
 ACCOUNT = 'sua_conta' # Ex: '123'
 
 # payload para obter o token
 token_request = {
-    'grant_type': 'password',
-    'scope': 'externalapi',
-    'username': username,
-    'password': password,
-    'client_id': client_id,
-    'client_secret': client_secret
+    'grant_type': 'password', # não alterar
+    'scope': 'externalapi', # não alterar
+    'username': 'seu_usuario',
+    'password': 'sua_senha',
+    'client_id': 'seu_client_id',
+    'client_secret': 'seu_client_secret'
 }
 
 # endpoint e request
-resp = requests.post(token_url, data=token_request)
+resp = requests.post(TOKEN_URL, data=token_request)
 resp.raise_for_status()
 print('Token obtido com sucesso')
 print()
