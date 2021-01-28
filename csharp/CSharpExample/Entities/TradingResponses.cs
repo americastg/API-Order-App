@@ -1,4 +1,4 @@
-﻿namespace RestApiApp
+﻿namespace Entities
 {
     // Respostas do envio da ordem pela API
     public class TradingResponses

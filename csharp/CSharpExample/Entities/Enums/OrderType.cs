@@ -1,4 +1,4 @@
-﻿namespace RestApiApp
+﻿namespace Entities.Enums
 {
     // Tipos de ordem
     public enum OrderType

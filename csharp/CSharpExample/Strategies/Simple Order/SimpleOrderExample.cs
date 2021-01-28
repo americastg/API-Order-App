@@ -1,37 +1,33 @@
-﻿using IdentityModel.Client;
+﻿using Entities;
+using Entities.Enums;
+using Entities.SimpleOrder;
+using IdentityModel.Client;
 using Newtonsoft.Json;
+using RestApiApp;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace RestApiApp
+namespace Strategies.SimpleOrder
 {
-    class Program
+    static class SimpleOrderExample
     {
         private static readonly HttpClient _httpClient = new HttpClient();
 
-        async static Task Main(string[] args)
-        {
-            InitHttpClient();
-            await RunAsync();
-
-            Console.WriteLine("Aperte qualquer tecla para encerrar");
-            Console.ReadLine();
-        }
-
-        static async Task RunAsync()
+        internal static async Task RunAsync()
         {
             try
             {
+                InitHttpClient();
                 await InitAuthToken();
                 await Task.Delay(1000);
 
                 string strategyId = await NewSimpleOrder();
                 await Task.Delay(1000);
 
-                string status = await GetSimpleOrderStatus(strategyId);
+                string status = await GetSimpleOrderStatusById(strategyId);
 
                 await UpdateSimpleOrder(strategyId, status);
                 await Task.Delay(1000);
@@ -39,7 +35,7 @@ namespace RestApiApp
                 await CancelSimpleOrder(strategyId, status);
                 await Task.Delay(1000);
 
-                await GetSimpleOrder();
+                await GetAllSimpleOrders();
                 await Task.Delay(1000);
             }
             catch (Exception e)
@@ -73,12 +69,12 @@ namespace RestApiApp
             var token = response.AccessToken.ToString();
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            Console.WriteLine("Token de acesso conseguido");
+            Console.WriteLine("Token de acesso obtido");
             Console.WriteLine();
         }
 
         // Método para pegar o status, através do strategyId da ordem
-        static async Task<string> GetSimpleOrderStatus(string strategyId)
+        static async Task<string> GetSimpleOrderStatusById(string strategyId)
         {
             var response = await _httpClient.GetAsync("simple-order");
 
@@ -87,7 +83,7 @@ namespace RestApiApp
             Console.WriteLine("Consulta de ordem simples: " + response.StatusCode);
 
             var listContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var deserializedResponse = JsonConvert.DeserializeObject<List<StrategyResponseSamples>>(listContent);
+            var deserializedResponse = JsonConvert.DeserializeObject<List<SimpleOrderReturnedFields>>(listContent);
             var strategySent = deserializedResponse.Find(x => x.StrategyId == strategyId);
             var status = strategySent.Status.ToString();
             Console.WriteLine("Status da ordem: " + status);
@@ -97,7 +93,7 @@ namespace RestApiApp
         }
 
         // Método para receber informações de todos os envios de ordem simples
-        static async Task GetSimpleOrder()
+        static async Task GetAllSimpleOrders()
         {
             var response = await _httpClient.GetAsync("simple-order");
 
@@ -106,7 +102,7 @@ namespace RestApiApp
             Console.WriteLine("Consulta de ordem simples: " + response.StatusCode);
 
             var listContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var deserializedResponse = JsonConvert.DeserializeObject<List<StrategyResponseSamples>>(listContent);
+            var deserializedResponse = JsonConvert.DeserializeObject<List<SimpleOrderReturnedFields>>(listContent);
             foreach (var obj in deserializedResponse)
             {
                 var serializedObj = JsonConvert.SerializeObject(obj);
@@ -116,11 +112,11 @@ namespace RestApiApp
             Console.WriteLine();
         }
 
-        // Metodo para criar uma ordem simples a partir dos parâmetros colocados no método anterior
+        // Metodo para criar uma ordem simples
         static async Task<string> NewSimpleOrder()
         {
             var response = await _httpClient.PostAsJsonAsync("simple-order",
-                new SimpleOrder
+                new SimpleOrderRequest
                 {
                     Broker = Config.Broker,
                     Account = Config.Account,
@@ -151,7 +147,7 @@ namespace RestApiApp
             if (SimpleOrderCanBeUpdated(status))
             {
                 var response = await _httpClient.PutAsJsonAsync($"simple-order/{strategyId}",
-                new SimpleOrder { Quantity = 50000 });
+                new SimpleOrderRequest { Quantity = 50000 });
 
                 // Garante que a resposta não contém nenhum erro
                 response.EnsureSuccessStatusCode();

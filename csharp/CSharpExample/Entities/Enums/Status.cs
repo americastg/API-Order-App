@@ -1,4 +1,4 @@
-﻿namespace RestApiApp
+﻿namespace Entities.Enums
 {
     // Tipos de status para serem recebidos
     public enum Status

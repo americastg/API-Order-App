@@ -1,4 +1,4 @@
-﻿namespace RestApiApp
+﻿namespace Entities.Enums
 {
     // Tipos de lado
     public enum Side
