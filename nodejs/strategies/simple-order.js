@@ -1,68 +1,79 @@
 import axios from 'axios'
-import queryString from 'querystring'
 
-const TOKEN_URL = 'https://mtbserver-staging.americastg.com.br:51525/connect/token'
-const BASE_ADDRESS = 'https://mtbserver-staging.americastg.com.br:51511/api/simple-order'
-const BROKER = 'sua_corretora' // Ex: '123'
-const ACCOUNT = 'sua_conta' // Ex: '321'
+const TOKEN_URL = '<TOKEN_URL>'
+const BASE_ADDRESS = '<BASE_ADDRESS>'
+const BROKER = '<YOUR_BROKER>'   // Ex: '123'
+const ACCOUNT = '<YOUR_ACCOUNT>' // Ex: '321'
 
-// Parâmetros usados para a autenticação do token
+// Token auth params
 const data = {
-    grant_type: 'password', // não mudar
-    scope: 'externalapi', // não mudar
-    username: 'seu_usuário',
-    password: 'sua_senha',
-    client_id: 'seu_client_id',
-    client_secret: 'seu_client_secret'
+    grant_type: 'password', // do not change
+    scope: 'externalapi',   // do not change
+    username: '<USERNAME>',
+    password: '<PASSWORD>',
+    client_id: '<CLIENT_ID>',
+    client_secret: '<CLIENT_SECRET>'
 }
 
 async function getToken() {
-    const response = await axios.post(TOKEN_URL, queryString.stringify(data))
-        .then(console.log('TOKEN OBTIDO \n'))
-        .catch(error => console.log('Erro ao pegar o token: ' + error))
-    return response.data.access_token
+    let token;
+    const query = new URLSearchParams(data);
+    await axios.post(TOKEN_URL, query.toString())
+        .then(response => {
+            console.log('GOT THE TOKEN');
+            token = response.data.access_token;
+        }).catch(error => console.log('ERROR WHILE TRYING TO GET THE TOKEN: ' + error));
+
+    return token;
 }
 
 async function createSimpleOrder(headers, newRequest) {
-    const response = await axios.post(BASE_ADDRESS, newRequest, { headers: headers })
-        .catch(error => console.log('Erro na inclusão da ordem simples: ' + error))
-    console.log('ORDEM SIMPLES CRIADA')
-    console.log(response.data, '\n')
-    return response
+    let strategyId;
+    await axios.post(BASE_ADDRESS, newRequest, { headers: headers })
+        .then(response => {
+            console.log(response.data);
+            console.log();
+
+            strategyId = response.data.StrategyId;
+        }).catch(error => console.log('Error: ' + error));
+    return strategyId;
 }
 
 async function updateSimpleOrder(headers, updateRequest, strategyId) {
-    const response = await axios.put(`${BASE_ADDRESS}/${strategyId}`, updateRequest, { headers })
-        .catch(error => console.log('Erro na atualização da ordem simples: ' + error))
-    console.log('ORDERM SIMPLES ATUALIZADA')
-    console.log(response.data, '\n')
+    await axios.put(`${BASE_ADDRESS}/${strategyId}`, updateRequest, { headers })
+        .then(response => {
+            console.log(response.data);
+            console.log();
+        }).catch(error => console.log('Error: ' + error));
 }
 
 async function cancelSimpleOrder(headers, strategyId) {
-    const response = await axios.delete(`${BASE_ADDRESS}/${strategyId}`, { headers })
-        .catch(error => console.log('Erro no cancelamento da ordem simples: ' + error))
-    console.log('ORDEM SIMPLES CANCELADA')
-    console.log(response.data, '\n')
+    await axios.delete(`${BASE_ADDRESS}/${strategyId}`, { headers })
+        .then(response => {
+            console.log(response.data);
+            console.log();
+        }).catch(error => console.log('Error: ' + error));
 }
 
 async function getAllSimpleOrders(headers) {
-    const response = await axios.get(BASE_ADDRESS, { headers })
-        .catch(error => console.log('Erro na consulta das ordens simples: ' + error))
-    console.log('CONSULTA DAS ORDENS SIMPLES')
-    response.data.forEach(order => {
-        console.info(JSON.stringify(order))
-    })
+    await axios.get(BASE_ADDRESS, { headers })
+        .then(response => {
+            response.data.forEach(order => {
+                console.info(JSON.stringify(order));
+                console.info();
+            })
+        }).catch(error => console.log('Error: ' + error));
 }
 
-async function getSimpleOrderStatusById(headers, strategyId) {
-    const response = await axios.get(BASE_ADDRESS, { headers })
-        .catch(error => console.log('Erro na consulta das ordens simples para verificar o status. Erro: ' + error))
-
-    for (let resp of response.data) {
-        if (resp.StrategyId == strategyId) {
-            return resp.Status
-        }
-    }
+async function getSimpleOrderById(headers, strategyId) {
+    let spreadOrder;
+    await axios.get(`${BASE_ADDRESS}/${strategyId}`, { headers })
+        .then(response => {
+            console.log('ORDER: ' + response);
+            spreadOrder = response;
+        })
+        .catch(error => console.log('Error: ' + error));
+    return spreadOrder;
 }
 
 function isUpdatable(status) {
@@ -89,24 +100,34 @@ async function run() {
         'TimeInForce': 'DAY',
         'Price': 20.04
     }
-    const simpleOrderCrationResponse = await createSimpleOrder(headers, newRequest)
-    const strategyId = simpleOrderCrationResponse.data.StrategyId
+    console.log('*** CREATING NEW SIMPLE ORDER ***');
+    const strategyId = await createSimpleOrder(headers, newRequest);
+    await new Promise(r => setTimeout(r, 3000));
 
-    const status = await getSimpleOrderStatusById(headers, strategyId)
+    console.log('*** GETTING ALL SIMPLE ORDERS ***');
+    await getAllSimpleOrders(headers);
+    await new Promise(r => setTimeout(r, 3000));
+
+    console.log('*** GETTING SIMPLE ORDER BY ID ***');
+    const simpleOrder = await getSimpleOrderById(headers, strategyId)
+    const status = simpleOrder.Status;
+    await new Promise(r => setTimeout(r, 3000));
 
     const updateRequest = {
         'Quantity': 20000
     }
 
     if (isUpdatable(status)) {
+        console.log('*** UPDATING SIMPLE ORDER ***');
         await updateSimpleOrder(headers, updateRequest, strategyId)
+        await new Promise(r => setTimeout(r, 3000));
 
+        console.log('*** CANCELLING SIMPLE ORDER ***');
         await cancelSimpleOrder(headers, strategyId)
+        await new Promise(r => setTimeout(r, 3000));
     } else {
-        console.log('Não foi possível fazer update/cancelamento da ordem. Status: ' + status)
+        console.log('It was not possible to Update/Cancel the spread, since the current status is: ' + status);
     }
-
-    await getAllSimpleOrders(headers)
 }
 
 run()

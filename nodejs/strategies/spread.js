@@ -1,68 +1,80 @@
 import axios from 'axios'
-import queryString from 'querystring'
 
-const TOKEN_URL = 'https://mtbserver-staging.americastg.com.br:51525/connect/token'
-const BASE_ADDRESS = 'https://mtbserver-staging.americastg.com.br:51511/api/spread'
-const BROKER = 'sua_corretora' // Ex: '123'
-const ACCOUNT = 'sua_conta' // Ex: '321'
+const TOKEN_URL = '<TOKEN_URL>'
+const BASE_ADDRESS = '<BASE_ADDRESS>'
+const BROKER = '<YOUR_BROKER>'   // Ex: '123'
+const ACCOUNT = '<YOUR_ACCOUNT>' // Ex: '321'
 
-// Parâmetros usados para a autenticação do token
+// Token auth params
 const data = {
-    grant_type: 'password', // não mudar
-    scope: 'externalapi', // não mudar
-    username: 'seu_usuário',
-    password: 'sua_senha',
-    client_id: 'seu_client_id',
-    client_secret: 'seu_client_secret'
+    grant_type: 'password', // do not change
+    scope: 'externalapi',   // do not change
+    username: '<USERNAME>',
+    password: '<PASSWORD>',
+    client_id: '<CLIENT_ID>',
+    client_secret: '<CLIENT_SECRET>'
+}
 }
 
 async function getToken() {
-    const response = await axios.post(TOKEN_URL, queryString.stringify(data))
-        .catch(error => console.log('Erro ao pegar o token: ' + error))
-    console.log('TOKEN OBTIDO \n')
-    return response.data.access_token
+    let token;
+    const query = new URLSearchParams(data);
+    await axios.post(TOKEN_URL, query.toString())
+        .then(response => {
+            console.log('GOT THE TOKEN');
+            token = response.data.access_token;
+        }).catch(error => console.log('ERROR WHILE TRYING TO GET THE TOKEN: ' + error));
+
+    return token;
 }
 
 async function createSpread(headers, newRequest) {
-    const response = await axios.post(BASE_ADDRESS, newRequest, { headers: headers })
-        .catch(error => console.log('Erro na inclusão do spread: ' + error))
-    console.log('SPREAD CRIADO')
-    console.log(response.data, '\n')
-    return response
+    let strategyId;
+    await axios.post(BASE_ADDRESS, newRequest, { headers: headers })
+        .then(response => {
+            console.log(response.data);
+            console.log();
+
+            strategyId = response.data.StrategyId;
+        }).catch(error => console.log('Error: ' + error));
+    return strategyId;
 }
 
 async function updateSpread(headers, updateRequest, strategyId) {
-    const response = await axios.put(`${BASE_ADDRESS}/${strategyId}`, updateRequest, { headers })
-        .catch(error => console.log('Erro na atualização do spread: ' + error))
-    console.log('SPREAD ATUALIZADO')
-    console.log(response.data, '\n')
+    await axios.put(`${BASE_ADDRESS}/${strategyId}`, updateRequest, { headers })
+        .then(response => {
+            console.log(response.data);
+            console.log();
+        }).catch(error => console.log('Error: ' + error));
 }
 
 async function cancelSpread(headers, strategyId) {
-    const response = await axios.delete(`${BASE_ADDRESS}/${strategyId}`, { headers })
-        .catch(error => console.log('Erro no cancelamento do spread: ' + error))
-    console.log('SPREAD CANCELADO')
-    console.log(response.data, '\n')
+    await axios.delete(`${BASE_ADDRESS}/${strategyId}`, { headers })
+        .then(response => {
+            console.log(response.data);
+            console.log();
+        }).catch(error => console.log('Error: ' + error));
 }
 
 async function getAllSpreads(headers) {
-    const response = await axios.get(BASE_ADDRESS, { headers })
-        .catch(error => console.log('Erro na consulta dos spreads: ' + error))
-    console.log('CONSULTA DOS SPREADS')
-    response.data.forEach(order => {
-        console.info(JSON.stringify(order))
-    })
+    await axios.get(BASE_ADDRESS, { headers })
+        .then(response => {
+            response.data.forEach(order => {
+                console.info(JSON.stringify(order));
+                console.info();
+            })
+        }).catch(error => console.log('Error: ' + error));
 }
 
-async function getSpreadStatusById(headers, strategyId) {
-    const response = await axios.get(BASE_ADDRESS, { headers })
-        .catch(error => console.log('Erro na consulta dos spreads para verificar o status. Erro: ' + error))
-
-    for (let resp of response.data) {
-        if (resp.StrategyId == strategyId) {
-            return resp.Status
-        }
-    }
+async function getSpreadById(headers, strategyId) {
+    let spreadOrder;
+    await axios.get(`${BASE_ADDRESS}/${strategyId}`, { headers })
+        .then(response => {
+            console.log('ORDER: ' + response);
+            spreadOrder = response;
+        })
+        .catch(error => console.log('Error: ' + error));
+    return spreadOrder;
 }
 
 function isUpdatable(status) {
@@ -113,10 +125,18 @@ async function run() {
             "AllowExecution": true
         }]
     }
-    const spreadCreationResponse = await createSpread(headers, newRequest)
-    const strategyId = spreadCreationResponse.data.StrategyId
+    console.log('*** CREATING NEW SPREAD ***');
+    const strategyId = await createSpread(headers, newRequest);
+    await new Promise(r => setTimeout(r, 3000));
 
-    const status = await getSpreadStatusById(headers, strategyId)
+    console.log('*** GETTING ALL SPREADS ***');
+    await getAllSpreads(headers);
+    await new Promise(r => setTimeout(r, 3000));
+
+    console.log('*** GETTING SPREAD BY ID ***');
+    const spread = await getSpreadById(headers, strategyId);
+    const status = spread.Status;
+    await new Promise(r => setTimeout(r, 3000));
 
     const updateRequest = {
         "SpreadValue": -6.3325,
@@ -134,14 +154,16 @@ async function run() {
     }
 
     if (isUpdatable(status)) {
-        await updateSpread(headers, updateRequest, strategyId)
+        console.log('*** UPDATING SPREAD ***');
+        await updateSpread(headers, updateRequest, strategyId);
+        await new Promise(r => setTimeout(r, 3000));
 
-        await cancelSpread(headers, strategyId)
+        console.log('*** CANCELLING SPREAD ***');
+        await cancelSpread(headers, strategyId);
+        await new Promise(r => setTimeout(r, 3000));
     } else {
-        console.log('Não foi possível fazer update/cancelamento da estratégia. Status: ' + status)
+        console.log('It was not possible to Update/Cancel the spread, since the current status is: ' + status);
     }
-
-    await getAllSpreads(headers)
 }
 
 run()
