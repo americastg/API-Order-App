@@ -20,6 +20,9 @@ namespace Strategies.Spread
         {
             try
             {
+                Console.WriteLine("*** RUNNING SPREAD EXAMPLE ***");
+                Console.WriteLine();
+
                 InitHttpClient();
                 await InitAuthToken();
                 await Task.Delay(1000);
@@ -39,6 +42,8 @@ namespace Strategies.Spread
 
                 await GetAllSpreads();
                 await Task.Delay(2000);
+
+                Console.WriteLine();
             }
             catch (Exception e)
             {

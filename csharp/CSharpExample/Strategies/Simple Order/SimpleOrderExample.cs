@@ -20,6 +20,9 @@ namespace Strategies.SimpleOrder
         {
             try
             {
+                Console.WriteLine("*** RUNNING SIMPLE ORDER EXAMPLE ***");
+                Console.WriteLine();
+
                 InitHttpClient();
                 await InitAuthToken();
                 await Task.Delay(1000);
@@ -39,6 +42,8 @@ namespace Strategies.SimpleOrder
 
                 await GetAllSimpleOrders();
                 await Task.Delay(2000);
+
+                Console.WriteLine();
             }
             catch (Exception e)
             {
