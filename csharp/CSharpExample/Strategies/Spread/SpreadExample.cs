@@ -25,18 +25,20 @@ namespace Strategies.Spread
                 await Task.Delay(1000);
 
                 string strategyId = await NewSpread();
-                await Task.Delay(1000);
+                await Task.Delay(2000);
 
-                string status = await GetSpreadStatusById(strategyId);
+                var spreadOrder = await GetSpreadById(strategyId);
+                var status = spreadOrder.Status;
+                await Task.Delay(2000);
 
                 await UpdateSpread(strategyId, status);
-                await Task.Delay(1000);
+                await Task.Delay(2000);
 
                 await CancelSpread(strategyId, status);
-                await Task.Delay(1000);
+                await Task.Delay(2000);
 
                 await GetAllSpreads();
-                await Task.Delay(1000);
+                await Task.Delay(2000);
             }
             catch (Exception e)
             {
@@ -51,7 +53,6 @@ namespace Strategies.Spread
                     new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        // Irá pegar o token necessário para envio de ordens pela API
         static async Task InitAuthToken()
         {
             var response = await _httpClient.RequestPasswordTokenAsync(new PasswordTokenRequest
@@ -69,37 +70,29 @@ namespace Strategies.Spread
             var token = response.AccessToken.ToString();
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            Console.WriteLine("Token de acesso obtido");
+            Console.WriteLine("Got Access Token");
             Console.WriteLine();
         }
 
-        // Método para pegar o status, através do strategyId da ordem
-        static async Task<string> GetSpreadStatusById(string strategyId)
+        static async Task<SpreadReturnedFields> GetSpreadById(string strategyId)
         {
-            var response = await _httpClient.GetAsync("spread");
-
-            // Garante que a resposta não contém nenhum erro
+            Console.WriteLine("*** GETTING SPREAD BY ID ***");
+            var response = await _httpClient.GetAsync($"spread/{strategyId}");
             response.EnsureSuccessStatusCode();
-            Console.WriteLine("Consulta do spread: " + response.StatusCode);
 
             var listContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var deserializedResponse = JsonConvert.DeserializeObject<List<SpreadReturnedFields>>(listContent);
-            var strategySent = deserializedResponse.Find(x => x.StrategyId == strategyId);
-            var status = strategySent.Status.ToString();
-            Console.WriteLine("Status da estratégia: " + status);
+            var deserializedResponse = JsonConvert.DeserializeObject<SpreadReturnedFields>(listContent);
+            Console.WriteLine("SPREAD ORDER: " + JsonConvert.SerializeObject(deserializedResponse));
             Console.WriteLine();
 
-            return status;
+            return deserializedResponse;
         }
 
-        // Método para receber informações de todos os envios de spread
         static async Task GetAllSpreads()
         {
+            Console.WriteLine("*** GETTING ALL SPREADS ***");
             var response = await _httpClient.GetAsync("spread");
-
-            // Garante que a resposta não contém nenhum erro
             response.EnsureSuccessStatusCode();
-            Console.WriteLine("Consulta do spread: " + response.StatusCode);
 
             var listContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var deserializedResponse = JsonConvert.DeserializeObject<List<SpreadReturnedFields>>(listContent);
@@ -112,9 +105,9 @@ namespace Strategies.Spread
             Console.WriteLine();
         }
 
-        // Metodo para criar um spread
         static async Task<string> NewSpread()
         {
+            Console.WriteLine("*** CREATING NEW SPREAD ***");
             var newSpreadReq = new SpreadRequest
             {
                 Broker = Config.Broker,
@@ -165,10 +158,7 @@ namespace Strategies.Spread
             });
 
             var response = await _httpClient.PostAsJsonAsync("spread", newSpreadReq);
-
-            // Garante que a resposta não contém nenhum erro
             response.EnsureSuccessStatusCode();
-            Console.WriteLine("Inclusão do spread: " + response.StatusCode);
 
             var contentResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var orderResponse = JsonConvert.DeserializeObject<TradingResponses>(contentResponse);
@@ -178,9 +168,9 @@ namespace Strategies.Spread
             return orderResponse.StrategyId;
         }
 
-        // Método usado pra fazer update do spread
-        static async Task UpdateSpread(string strategyId, string status)
+        static async Task UpdateSpread(string strategyId, Status status)
         {
+            Console.WriteLine("*** UPDATING SPREAD ***");
             var updateSpreadReq = new SpreadRequest
             {
                 SpreadValue = -4.034
@@ -197,10 +187,7 @@ namespace Strategies.Spread
             if (SpreadCanBeUpdated(status))
             {
                 var response = await _httpClient.PutAsJsonAsync($"spread/{strategyId}", updateSpreadReq);
-
-                // Garante que a resposta não contém nenhum erro
                 response.EnsureSuccessStatusCode();
-                Console.WriteLine("Update do spread: " + response.StatusCode);
 
                 var contentResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 var orderResponse = JsonConvert.DeserializeObject<TradingResponses>(contentResponse);
@@ -209,22 +196,18 @@ namespace Strategies.Spread
             }
             else
             {
-                Console.WriteLine("Não foi possível realizar um update do spread," +
-                    " já que o status atual da estratégia é: " + status);
+                Console.WriteLine("Spread update cannot be done, since the current status is: " + status);
                 Console.WriteLine();
             }
         }
 
-        // Método usado para fazer cancelamento do spread
-        static async Task CancelSpread(string strategyId, string status)
+        static async Task CancelSpread(string strategyId, Status status)
         {
+            Console.WriteLine("*** CANCELLING SPREAD ***");
             if (SpreadCanBeUpdated(status))
             {
                 var response = await _httpClient.DeleteAsync($"spread/{strategyId}");
-
-                // Garante que a resposta não contém nenhum erro
                 response.EnsureSuccessStatusCode();
-                Console.WriteLine("Cancelamento do spread: " + response.StatusCode);
 
                 var contentResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 var orderResponse = JsonConvert.DeserializeObject<TradingResponses>(contentResponse);
@@ -233,13 +216,11 @@ namespace Strategies.Spread
             }
             else
             {
-                Console.WriteLine("Não foi possível realizar um cancelamento do spread," +
-                    " já que o status atual da estratégia é: " + status);
+                Console.WriteLine("Spread cancel cannot be done, since the current status is: " + status);
                 Console.WriteLine();
             }
         }
 
-        // Método usado para logar a resposta da API após qualquer request enviado
         static void LogStrategyResponse(TradingResponses orderResponse, string strategyId)
         {
             Console.WriteLine("Response messageID: " + orderResponse.MessageId);
@@ -249,23 +230,20 @@ namespace Strategies.Spread
             Console.WriteLine();
         }
 
-        // Método se há algum erro no retorno do envio da ordem
         static void CheckOrderResponseError(string error)
         {
             if (!string.IsNullOrEmpty(error))
             {
-                Console.WriteLine("Erro no retorno da API:");
+                Console.WriteLine("Response error:");
                 throw new Exception(error);
             }
         }
 
-        // Método que verifica se a estratégia pode ser modificada, através do status
-        static bool SpreadCanBeUpdated(string status)
+        static bool SpreadCanBeUpdated(Status status)
         {
-            Status statusEnum = (Status)Enum.Parse(typeof(Status), status);
-            if (statusEnum == Status.CANCELLED ||
-                statusEnum == Status.FINISHED ||
-                statusEnum == Status.TOTALLY_EXECUTED)
+            if (status == Status.CANCELLED ||
+                status == Status.FINISHED ||
+                status == Status.TOTALLY_EXECUTED)
                 return false;
 
             return true;

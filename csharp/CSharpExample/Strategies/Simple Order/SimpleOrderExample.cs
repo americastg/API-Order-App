@@ -91,7 +91,6 @@ namespace Strategies.SimpleOrder
         static async Task GetAllSimpleOrders()
         {
             Console.WriteLine("*** GETTING ALL SIMPLE ORDERS ***");
-
             var response = await _httpClient.GetAsync("simple-order");
             response.EnsureSuccessStatusCode();
 
@@ -109,7 +108,6 @@ namespace Strategies.SimpleOrder
         static async Task<string> NewSimpleOrder()
         {
             Console.WriteLine("*** CREATING NEW SIMPLE ORDER ***");
-
             var response = await _httpClient.PostAsJsonAsync("simple-order",
                 new SimpleOrderRequest
                 {
