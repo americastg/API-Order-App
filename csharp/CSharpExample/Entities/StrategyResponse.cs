@@ -1,7 +1,6 @@
 ﻿namespace Entities
 {
-    // Respostas do envio da ordem pela API
-    public class TradingResponses
+    public class StrategyResponse
     {
         public long MessageId { get; set; }
         public string StrategyId { get; set; }

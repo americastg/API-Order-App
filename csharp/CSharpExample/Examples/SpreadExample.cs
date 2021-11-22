@@ -1,6 +1,7 @@
 ﻿using Entities;
 using Entities.Enums;
-using Entities.Spread;
+using Entities.Spread.Requests;
+using Entities.Spread.Responses;
 using IdentityModel.Client;
 using Newtonsoft.Json;
 using RestApiApp;
@@ -10,7 +11,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace Strategies.Spread
+namespace Examples.Spread
 {
     static class SpreadExample
     {
@@ -79,14 +80,14 @@ namespace Strategies.Spread
             Console.WriteLine();
         }
 
-        static async Task<SpreadReturnedFields> GetSpreadById(string strategyId)
+        static async Task<SpreadResponse> GetSpreadById(string strategyId)
         {
             Console.WriteLine("*** GETTING SPREAD BY ID ***");
             var response = await _httpClient.GetAsync($"spread/{strategyId}");
             response.EnsureSuccessStatusCode();
 
             var listContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var deserializedResponse = JsonConvert.DeserializeObject<SpreadReturnedFields>(listContent);
+            var deserializedResponse = JsonConvert.DeserializeObject<SpreadResponse>(listContent);
             Console.WriteLine("SPREAD ORDER: " + JsonConvert.SerializeObject(deserializedResponse));
             Console.WriteLine();
 
@@ -100,7 +101,7 @@ namespace Strategies.Spread
             response.EnsureSuccessStatusCode();
 
             var listContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var deserializedResponse = JsonConvert.DeserializeObject<List<SpreadReturnedFields>>(listContent);
+            var deserializedResponse = JsonConvert.DeserializeObject<List<SpreadResponse>>(listContent);
             foreach (var obj in deserializedResponse)
             {
                 var serializedObj = JsonConvert.SerializeObject(obj);
@@ -113,7 +114,7 @@ namespace Strategies.Spread
         static async Task<string> NewSpread()
         {
             Console.WriteLine("*** CREATING NEW SPREAD ***");
-            var newSpreadReq = new SpreadRequest
+            var newSpreadReq = new NewSpreadRequest
             {
                 Broker = Config.Broker,
                 Account = Config.Account,
@@ -135,7 +136,7 @@ namespace Strategies.Spread
                 WaitTime = 0,
                 ShouldCreateReverseSpreadOnFinish = false
             };
-            newSpreadReq.AddSpreadInstrument(new SpreadInstrument
+            newSpreadReq.AddSpreadInstrument(new NewSpreadInstrument
             {
                 Symbol = "SULA11",
                 Side = Side.BUY,
@@ -148,7 +149,7 @@ namespace Strategies.Spread
                 AllowExecution = true,
                 PlaceOverBestOffer = true
             });
-            newSpreadReq.AddSpreadInstrument(new SpreadInstrument
+            newSpreadReq.AddSpreadInstrument(new NewSpreadInstrument
             {
                 Symbol = "SULA4",
                 Side = Side.SELL,
@@ -166,7 +167,7 @@ namespace Strategies.Spread
             response.EnsureSuccessStatusCode();
 
             var contentResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var orderResponse = JsonConvert.DeserializeObject<TradingResponses>(contentResponse);
+            var orderResponse = JsonConvert.DeserializeObject<StrategyResponse>(contentResponse);
             LogStrategyResponse(orderResponse, orderResponse.StrategyId);
             CheckOrderResponseError(orderResponse.Error);
 
@@ -176,15 +177,15 @@ namespace Strategies.Spread
         static async Task UpdateSpread(string strategyId, Status status)
         {
             Console.WriteLine("*** UPDATING SPREAD ***");
-            var updateSpreadReq = new SpreadRequest
+            var updateSpreadReq = new UpdateSpreadRequest
             {
                 SpreadValue = -4.034
             };
-            updateSpreadReq.AddSpreadInstrument(new SpreadInstrument
+            updateSpreadReq.AddSpreadInstrument(new UpdateSpreadInstrument
             {
                 Quantity = 10000
             });
-            updateSpreadReq.AddSpreadInstrument(new SpreadInstrument
+            updateSpreadReq.AddSpreadInstrument(new UpdateSpreadInstrument
             {
                 Quantity = 35000
             });
@@ -195,7 +196,7 @@ namespace Strategies.Spread
                 response.EnsureSuccessStatusCode();
 
                 var contentResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                var orderResponse = JsonConvert.DeserializeObject<TradingResponses>(contentResponse);
+                var orderResponse = JsonConvert.DeserializeObject<StrategyResponse>(contentResponse);
                 LogStrategyResponse(orderResponse, strategyId);
                 CheckOrderResponseError(orderResponse.Error);
             }
@@ -215,7 +216,7 @@ namespace Strategies.Spread
                 response.EnsureSuccessStatusCode();
 
                 var contentResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                var orderResponse = JsonConvert.DeserializeObject<TradingResponses>(contentResponse);
+                var orderResponse = JsonConvert.DeserializeObject<StrategyResponse>(contentResponse);
                 LogStrategyResponse(orderResponse, strategyId);
                 CheckOrderResponseError(orderResponse.Error);
             }
@@ -226,7 +227,7 @@ namespace Strategies.Spread
             }
         }
 
-        static void LogStrategyResponse(TradingResponses orderResponse, string strategyId)
+        static void LogStrategyResponse(StrategyResponse orderResponse, string strategyId)
         {
             Console.WriteLine("Response messageID: " + orderResponse.MessageId);
             Console.WriteLine("Response strategyID: " + strategyId);
@@ -240,6 +241,8 @@ namespace Strategies.Spread
             if (!string.IsNullOrEmpty(error))
             {
                 Console.WriteLine("Response error:");
+                Console.WriteLine();
+
                 throw new Exception(error);
             }
         }

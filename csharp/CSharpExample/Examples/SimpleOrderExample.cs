@@ -1,6 +1,7 @@
 ﻿using Entities;
 using Entities.Enums;
-using Entities.SimpleOrder;
+using Entities.Simple_Order.Requests;
+using Entities.Simple_Order.Responses;
 using IdentityModel.Client;
 using Newtonsoft.Json;
 using RestApiApp;
@@ -10,7 +11,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace Strategies.SimpleOrder
+namespace Examples.SimpleOrder
 {
     static class SimpleOrderExample
     {
@@ -79,14 +80,14 @@ namespace Strategies.SimpleOrder
             Console.WriteLine();
         }
 
-        static async Task<SimpleOrderReturnedFields> GetSimpleOrderById(string strategyId)
+        static async Task<SimpleOrderResponse> GetSimpleOrderById(string strategyId)
         {
             Console.WriteLine("*** GETTING SIMPLE ORDER BY ID ***");
             var response = await _httpClient.GetAsync($"simple-order/{strategyId}");
             response.EnsureSuccessStatusCode();
 
             var listContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var deserializedResponse = JsonConvert.DeserializeObject<SimpleOrderReturnedFields>(listContent);
+            var deserializedResponse = JsonConvert.DeserializeObject<SimpleOrderResponse>(listContent);
             Console.WriteLine("SIMPLE ORDER: " + JsonConvert.SerializeObject(deserializedResponse));
             Console.WriteLine();
 
@@ -100,7 +101,7 @@ namespace Strategies.SimpleOrder
             response.EnsureSuccessStatusCode();
 
             var listContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var deserializedResponse = JsonConvert.DeserializeObject<List<SimpleOrderReturnedFields>>(listContent);
+            var deserializedResponse = JsonConvert.DeserializeObject<List<SimpleOrderResponse>>(listContent);
             foreach (var obj in deserializedResponse)
             {
                 var serializedObj = JsonConvert.SerializeObject(obj);
@@ -114,22 +115,21 @@ namespace Strategies.SimpleOrder
         {
             Console.WriteLine("*** CREATING NEW SIMPLE ORDER ***");
             var response = await _httpClient.PostAsJsonAsync("simple-order",
-                new SimpleOrderRequest
+                new NewSimpleOrderRequest
                 {
                     Broker = Config.Broker,
                     Account = Config.Account,
                     OrderType = OrderType.LIMIT,
-                    Symbol = "SULA4",
-                    Side = Side.SELL,
+                    Symbol = "SULA11",
+                    Side = Side.BUY,
                     Quantity = 300,
-                    Price = 19.00,
-                    DisplayQuantity = 200,
+                    Price = 5.45,
                     TimeInForce = TimeInForce.DAY
                 });
             response.EnsureSuccessStatusCode();
 
             var contentResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var orderResponse = JsonConvert.DeserializeObject<TradingResponses>(contentResponse);
+            var orderResponse = JsonConvert.DeserializeObject<StrategyResponse>(contentResponse);
             LogStrategyResponse(orderResponse, orderResponse.StrategyId);
             CheckOrderResponseError(orderResponse.Error);
 
@@ -142,12 +142,12 @@ namespace Strategies.SimpleOrder
             if (SimpleOrderCanBeUpdated(status))
             {
                 var response = await _httpClient.PutAsJsonAsync($"simple-order/{strategyId}",
-                new SimpleOrderRequest { Quantity = 50000 });
+                new UpdateSimpleOrderRequest { Quantity = 50000 });
 
                 response.EnsureSuccessStatusCode();
 
                 var contentResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                var orderResponse = JsonConvert.DeserializeObject<TradingResponses>(contentResponse);
+                var orderResponse = JsonConvert.DeserializeObject<StrategyResponse>(contentResponse);
                 LogStrategyResponse(orderResponse, strategyId);
                 CheckOrderResponseError(orderResponse.Error);
             }
@@ -167,7 +167,7 @@ namespace Strategies.SimpleOrder
                 response.EnsureSuccessStatusCode();
 
                 var contentResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                var orderResponse = JsonConvert.DeserializeObject<TradingResponses>(contentResponse);
+                var orderResponse = JsonConvert.DeserializeObject<StrategyResponse>(contentResponse);
                 LogStrategyResponse(orderResponse, strategyId);
                 CheckOrderResponseError(orderResponse.Error);
             }
@@ -178,7 +178,7 @@ namespace Strategies.SimpleOrder
             }
         }
 
-        static void LogStrategyResponse(TradingResponses orderResponse, string strategyId)
+        static void LogStrategyResponse(StrategyResponse orderResponse, string strategyId)
         {
             Console.WriteLine("Response messageID: " + orderResponse.MessageId);
             Console.WriteLine("Response strategyID: " + strategyId);
@@ -192,6 +192,8 @@ namespace Strategies.SimpleOrder
             if (!string.IsNullOrEmpty(error))
             {
                 Console.WriteLine("Response error:");
+                Console.WriteLine();
+
                 throw new Exception(error);
             }
         }

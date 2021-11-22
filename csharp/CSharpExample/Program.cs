@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Strategies.SimpleOrder;
-using Strategies.Spread;
+using Examples.SimpleOrder;
+using Examples.Spread;
 
 namespace RestApiApp
 {
