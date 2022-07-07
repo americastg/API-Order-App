@@ -1,0 +1,19 @@
+{
+  "name": "node",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "simpleorder": "node ./strategies/simple-order.js",
+    "spread": "node ./strategies/spread.js",
+    "websocket": "node ./websocket.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@msgpack/msgpack": "^2.7.2",
+    "axios": "^0.21.4",
+    "ws": "^8.8.0"
+  },
+  "description": ""
+}
