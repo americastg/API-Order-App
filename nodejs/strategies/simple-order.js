@@ -66,14 +66,15 @@ async function getAllSimpleOrders(headers, page) {
 }
 
 async function getSimpleOrderById(headers, strategyId) {
-    let spreadOrder;
+    let simpleOrder;
     await axios.get(`${BASE_ADDRESS}/${strategyId}`, { headers })
         .then(response => {
-            console.log('ORDER: ' + response);
-            spreadOrder = response;
+            console.log('ORDER: ');
+            console.log(response.data)
+            simpleOrder = response;
         })
         .catch(error => console.log('Error: ' + error));
-    return spreadOrder;
+    return simpleOrder;
 }
 
 function isUpdatable(status) {

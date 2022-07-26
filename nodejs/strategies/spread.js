@@ -1,7 +1,7 @@
 const axios = require('axios').default;
 
 const TOKEN_URL = '<TOKEN_URL>/connect/token'
-const BASE_ADDRESS = '<BASE_ADDRESS>/api/simple-order'
+const BASE_ADDRESS = '<BASE_ADDRESS>/api/spread'
 const BROKER = '<YOUR_BROKER>'   // Ex: '123'
 const ACCOUNT = '<YOUR_ACCOUNT>' // Ex: '321'
 
@@ -69,7 +69,8 @@ async function getSpreadById(headers, strategyId) {
     let spreadOrder;
     await axios.get(`${BASE_ADDRESS}/${strategyId}`, { headers })
         .then(response => {
-            console.log('ORDER: ' + response);
+            console.log('ORDER: ');
+            console.log(response.data);
             spreadOrder = response;
         })
         .catch(error => console.log('Error: ' + error));
