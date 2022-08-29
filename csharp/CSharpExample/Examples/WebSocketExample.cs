@@ -45,13 +45,14 @@ namespace CSharpExample.Examples
             {
                 var receiveBuffer = new byte[200_000];
                 var buffer = new ArraySegment<byte>(new byte[1024 * 1]);
-                var receiveSize = 0;
                 var messageType = WebSocketMessageType.Text;
 
                 try
                 {
                     while (_webSocket.State == WebSocketState.Open)
                     {
+                        var receiveSize = 0;
+
                         while (_webSocket.State == WebSocketState.Open)
                         {
                             var result = await _webSocket.ReceiveAsync(buffer, killConnectionToken);
