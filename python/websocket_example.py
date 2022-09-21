@@ -6,6 +6,9 @@ def on_open(ws):
     ws.send(token)
 
 def on_message(ws, message):
+    if message == b'\xff':
+        ws.send('')
+        return
     messageDes = msgpack.unpackb(message)
     print (messageDes)
 

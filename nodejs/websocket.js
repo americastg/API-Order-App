@@ -36,6 +36,11 @@ async function run() {
     };
 
     ws.onmessage = (event) => {
+        if(event.data[0] == 0xFF)
+        {
+            ws.send(0xFF)
+            return;
+        }
         const strategy = msgpck.decode(event.data);
         console.log('WebSocket message',strategy);
     };

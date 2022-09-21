@@ -10,6 +10,7 @@ namespace CSharpExample.Examples
         private ClientWebSocket _webSocket;
         private readonly string _connection;
         private readonly string _token;
+        private readonly byte[] HTB_MSG = new byte[] { 0xFF };
 
         public WebSocketExample(string connection, string token)
         {
@@ -69,6 +70,12 @@ namespace CSharpExample.Examples
 
                         var messageArray = new byte[receiveSize];
                         Buffer.BlockCopy(receiveBuffer, 0, messageArray, 0, receiveSize);
+
+                        if (receiveSize == 1 && messageArray[0] == HTB_MSG[0])
+                        {
+                            await _webSocket.SendAsync(HTB_MSG, WebSocketMessageType.Binary, true, CancellationToken.None);
+                            continue;
+                        }
 
                         var data = MessagePackSerializer.ConvertToJson(messageArray);
                         if (data != null) ValidateResponses.ValidateWebSocketMessageResponse(data);
