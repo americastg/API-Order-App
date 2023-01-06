@@ -35,9 +35,16 @@ namespace CSharpExample.Examples
         {
             _webSocket = new ClientWebSocket();
 
-            await _webSocket.ConnectAsync(new Uri($"{_connection}ws/strategies"), CancellationToken.None);
-            var sendBuffer1 = Encoding.UTF8.GetBytes(_token);
-            await _webSocket.SendAsync(new ArraySegment<byte>(sendBuffer1), WebSocketMessageType.Text, true, CancellationToken.None);
+            try
+            {
+                await _webSocket.ConnectAsync(new Uri($"{_connection}ws/strategies"), CancellationToken.None);
+                var sendBuffer1 = Encoding.UTF8.GetBytes(_token);
+                await _webSocket.SendAsync(new ArraySegment<byte>(sendBuffer1), WebSocketMessageType.Text, true, CancellationToken.None);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
         private async Task StartWebSocket(CancellationToken killConnectionToken)

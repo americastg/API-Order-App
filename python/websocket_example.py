@@ -7,7 +7,7 @@ def on_open(ws):
 
 def on_message(ws, message):
     if message == b'\xff':
-        ws.send(b'\xff')
+        ws.send(b'1')
         return
     messageDes = msgpack.unpackb(message)
     print (messageDes)
@@ -25,7 +25,7 @@ def main():
                                 on_error = on_error
                                 )
     ws.on_open = on_open
-    ws.run_forever(ping_interval=240, ping_timeout=120)
+    ws.run_forever()
 
 if __name__ == "__main__":
     main()
