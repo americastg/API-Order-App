@@ -7,10 +7,8 @@ const BASE_ADDRESS = '<BASE_ADDRESS>/api/ws/strategies'
 
 // Token auth params
 const data = {
-    grant_type: 'password', // do not change
-    scope: 'externalapi',   // do not change
-    username: '<USERNAME>',
-    password: '<PASSWORD>',
+    grant_type: 'client_credentials',  
+    scope: 'atgapi',    
     client_id: '<CLIENT_ID>',
     client_secret: '<CLIENT_SECRET>'
 }
@@ -28,7 +26,7 @@ async function getToken() {
 }
 
 async function run() {
-    const token = await getToken()
+    const token = await getToken();
     const ws = new websocket(BASE_ADDRESS.replace('http','ws'));
 
     ws.onopen = (event) => {
@@ -38,7 +36,7 @@ async function run() {
     ws.onmessage = (event) => {
         if(event.data[0] == 0xFF)
         {
-            ws.send(0xFF)
+            ws.send(0xFF);
             return;
         }
         const strategy = msgpck.decode(event.data);
@@ -46,8 +44,8 @@ async function run() {
     };
 
     ws.onerror = (event) => {
-        console.log('Error')
-        console.log(event.data)
+        console.log('Error');
+        console.log(event);
     }
 }
 

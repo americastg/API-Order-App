@@ -5,10 +5,8 @@ BASE_URL = '<URL>/api'
 TOKEN_URL = '<URL>/connect/token'
 
 token_request = {
-    'grant_type': 'password',  # do not change
-    'scope': 'externalapi',    # do not change
-    'username': '<USERNAME>',
-    'password': '<PASSWORD>',
+    'grant_type': 'client_credentials',  # do not change
+    'scope': 'atgapi',    # do not change
     'client_id': '<CLIENT_ID>',
     'client_secret': '<CLIENT_SECRET>'
 }

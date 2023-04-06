@@ -14,14 +14,12 @@ namespace CSharpExample.Utils
         {
             var client = new HttpClient();
 
-            var response = await client.RequestPasswordTokenAsync(new PasswordTokenRequest
+            var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
             {
                 Address = config.TokenAddress,
                 ClientId = config.ClientId,
                 ClientSecret = config.ClientSecret,
-                Scope = "externalapi",
-                UserName = config.UserName,
-                Password = config.Password
+                Scope = "atgapi"
             });
 
             if (response.IsError) throw new Exception($"Erro: [{response.Error}] | Status: [{response.HttpStatusCode}]");
