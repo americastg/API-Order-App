@@ -1,4 +1,4 @@
-import websocket, msgpack
+import websocket, msgpack, threading
 from base_client import *
 
 def on_open(ws):
@@ -16,6 +16,10 @@ def on_error(ws, error):
     print("Error:")
     print(error)
 
+def schedule_websocket_heartbeat():
+    ws.send(b'1')
+    threading.Timer(30.0, schedule_websocket_heartbeat).start()
+
 def main():
     wsUrl = BASE_URL.replace('http','ws')
     websocket.enableTrace(False)
@@ -26,6 +30,7 @@ def main():
                                 )
     ws.on_open = on_open
     ws.run_forever()
+    schedule_websocket_heartbeat()
 
 if __name__ == "__main__":
     main()

@@ -47,6 +47,11 @@ async function run() {
         console.log('Error');
         console.log(event);
     }
+
+    // send a byte to the server every 30s to keep the connection alive
+    setInterval(() => {
+        ws.send(0xFF);
+    }, 30000);
 }
 
 run()
