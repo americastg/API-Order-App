@@ -18,7 +18,7 @@ def on_error(ws, error):
 
 def schedule_websocket_heartbeat():
     ws.send(b'1')
-    threading.Timer(30.0, schedule_websocket_heartbeat).start()
+    threading.Timer(60.0, schedule_websocket_heartbeat).start()
 
 def main():
     wsUrl = BASE_URL.replace('http','ws')

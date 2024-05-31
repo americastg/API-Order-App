@@ -69,7 +69,7 @@ namespace CSharpExample.Examples
                 var receiveBuffer = new byte[200_000];
                 var buffer = new ArraySegment<byte>(new byte[1024 * 1]);
                 var messageType = WebSocketMessageType.Text;
-                var websocketHeartbeatTimer = new Timer(HeartbeatByteSender, null, 30000, 30000);
+                var websocketHeartbeatTimer = new Timer(HeartbeatByteSender, null, 60000, 60000);
 
                 try
                 {
