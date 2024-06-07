@@ -47,6 +47,21 @@ namespace CSharpExample.Examples
             }
         }
 
+        private async void HeartbeatByteSender(object? state)
+        {
+            try
+            {
+                if (_webSocket.State == WebSocketState.Open)
+                {
+                    await _webSocket.SendAsync(HTB_MSG, WebSocketMessageType.Binary, true, CancellationToken.None);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+
         private async Task StartWebSocket(CancellationToken killConnectionToken)
         {
             while (true)
@@ -54,6 +69,7 @@ namespace CSharpExample.Examples
                 var receiveBuffer = new byte[200_000];
                 var buffer = new ArraySegment<byte>(new byte[1024 * 1]);
                 var messageType = WebSocketMessageType.Text;
+                var websocketHeartbeatTimer = new Timer(HeartbeatByteSender, null, 30000, 30000);
 
                 try
                 {
@@ -107,6 +123,7 @@ namespace CSharpExample.Examples
                 if (_webSocket.State != WebSocketState.Open)
                 {
                     _webSocket.Abort();
+                    websocketHeartbeatTimer.Dispose();
                     await Task.Delay(1000, killConnectionToken);
                     await CreateSocket();
                 }
