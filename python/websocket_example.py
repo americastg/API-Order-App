@@ -16,9 +16,14 @@ def on_error(ws, error):
     print("Error:")
     print(error)
 
-def schedule_websocket_heartbeat():
-    ws.send(b'1')
-    threading.Timer(30.0, schedule_websocket_heartbeat).start()
+def schedule_websocket_heartbeat(ws, first_run):
+    try:
+        if not first_run:
+            ws.send(b'1')
+    except Exception as e:
+        print(f'Failed to send heartbeat to server, Exception: {e}')
+
+    threading.Timer(30.0, schedule_websocket_heartbeat, args=[ws, False]).start()
 
 def main():
     wsUrl = BASE_URL.replace('http','ws')
@@ -29,7 +34,7 @@ def main():
                                 on_error = on_error
                                 )
     ws.on_open = on_open
-    schedule_websocket_heartbeat()
+    schedule_websocket_heartbeat(ws, True)
     ws.run_forever()
 
 if __name__ == "__main__":
